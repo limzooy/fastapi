@@ -1,0 +1,9 @@
+dependency-injector
+sqlalchemy
+mysqlclient
+alembic
+python == 3.10
+"passlib[bcrypt]"
+py-ulid
+fastapi
+uvicorn
