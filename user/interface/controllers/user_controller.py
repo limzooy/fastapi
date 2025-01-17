@@ -38,6 +38,7 @@ def update_user(
     user: UpdateUser,
     user_service: UserService = Depends(Provide[Container.user_service]),
 ):
+    print(user_id)
     user = user_service.update_user(
         user_id=user_id,
         name=user.name,

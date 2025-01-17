@@ -36,6 +36,7 @@ class UserRepository(IUserRepository):
     
     def find_by_id(self, id: str):
         with SessionLocal() as db:
+            print(23)
             user = db.query(User).filter(User.id == id).first()
 
         if not user:

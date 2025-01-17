@@ -58,8 +58,9 @@ class UserService:
         name: str | None = None,
         password: str | None = None,
     ):
+        print(3)
         user = self.user_repo.find_by_id(user_id)
-
+        print(user)
         if name: 
             user.name = name
         if password:
