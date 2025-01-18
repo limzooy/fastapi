@@ -5,10 +5,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from containers import Container
+from example.ch06_02.sync_ex import router as sync_ex_routers
+from example.ch06_02.async_ex import router as async_ex_routers
 
 app = FastAPI()
 app.container = Container()
 app.include_router(user_routers)
+app.include_router(sync_ex_routers)
+app.include_router(async_ex_routers)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
