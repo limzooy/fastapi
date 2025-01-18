@@ -8,6 +8,9 @@ from utils.crypto import Crypto
 from typing import Annotated
 from fastapi import HTTPException, Depends
 from dependency_injector.wiring import inject, Provide
+from fastapi import status
+from common.auth import create_access_token
+
 
 class UserService:
     @inject
@@ -58,7 +61,7 @@ class UserService:
         name: str | None = None,
         password: str | None = None,
     ):
-        print(3)
+        # print(3)
         user = self.user_repo.find_by_id(user_id)
         print(user)
         if name: 
@@ -70,4 +73,24 @@ class UserService:
         self.user_repo.update(user)
 
         return user
+    
+    def login(self, email: str, password: str):
+        user = self.user_repo.find_by_email(email)
+        
+        if not self.crypto.verify(password, user.password):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        
+        access_token = create_access_token(
+            payload={"user_id": user_id}
+        )
+        
+        return access_token
+    
+    def get_users(self, page: int, items_per_page: int) -> tuple[int, list[User]]:
+        users = self.user_repo.get_users(page, items_per_page)
+        
+        return users
+    
+    def delete_user(self, user_id: str):
+        self.user_repo.delete(user_id)
     

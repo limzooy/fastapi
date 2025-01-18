@@ -1,12 +1,12 @@
 from database import SessionLocal
 from user.domain.repository.user_repo import IUserRepository
-from user.domain.user import User as UserV0
+from user.domain.user import User as UserVO
 from user.infra.db_models.user import User
 from fastapi import HTTPException
 from utils.db_utils import row_to_dict
 
 class UserRepository(IUserRepository):
-    def save(self, user: UserV0):
+    def save(self, user: UserVO):
         new_user = User(
             id=user.id,
             email=user.email,
@@ -25,26 +25,25 @@ class UserRepository(IUserRepository):
             finally:
                 db.close()
 
-    def find_by_email(self, email: str) -> UserV0:
+    def find_by_email(self, email: str) -> UserVO:
         with SessionLocal() as db:
             user = db.query(User).filter(User.email == email).first()
 
         if not user:
             raise HTTPException(status_code=422)
         
-        return UserV0(**row_to_dict(user))
+        return UserVO(**row_to_dict(user))
     
     def find_by_id(self, id: str):
         with SessionLocal() as db:
-            print(23)
             user = db.query(User).filter(User.id == id).first()
 
         if not user:
             raise HTTPException(status_code=422)
         
-        return UserV0(**row_to_dict(user))
+        return UserVO(**row_to_dict(user))
     
-    def update(self, user_vo: UserV0):
+    def update(self, user_vo: UserVO):
         with SessionLocal() as db:
             user = db.query(User).filter(User.id == user_vo.id).first()
 
@@ -58,4 +57,27 @@ class UserRepository(IUserRepository):
             db.commit()
 
         return user
+    
+    def get_users(self,
+                  page: int = 1,
+                  items_per_page: int = 10,
+                  ) -> tuple[int, list[UserVO]]:
+        with SessionLocal() as db:
+            query = db.query(User)
+            total_count = query.count()
+            
+            offset = (page - 1) * items_per_page
+            users = query.limit(items_per_page).offset(offset).all()
+            
+        return total_count, [UserVO(**row_to_dict(user)) for user in users]
+    
+    def delete(self, id: str):
+        with SessionLocal() as db:
+            user = db.query(User).filter(User.id == id).first()
+            
+            if not user:
+                raise HTTPException(status_code=422)
+            
+            db.delete(user)
+            db.commit()
         
