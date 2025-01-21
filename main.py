@@ -1,5 +1,6 @@
 import uvicorn
 from user.interface.controllers.user_controller import router as user_routers
+from note.interface.controllers.note_controller import router as note_routers
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
@@ -12,6 +13,7 @@ app = FastAPI()
 container = Container()
 app.container = Container()
 app.include_router(user_routers)
+app.include_router(note_routers)
 app.include_router(sync_ex_routers)
 app.include_router(async_ex_routers)
 
