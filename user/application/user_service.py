@@ -3,13 +3,15 @@ from datetime import datetime
 from user.domain.user import User
 from user.domain.repository.user_repo import IUserRepository
 from user.infra.repository.user_repo import UserRepository
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 from utils.crypto import Crypto
 from typing import Annotated
 from fastapi import HTTPException, Depends
 from dependency_injector.wiring import inject, Provide
 from fastapi import status
 from common.auth import Role, create_access_token
+from user.application.email_service import EmailService
+from user.application.send_welcome_email_task import SendWelcomeEmailTask
 
 
 class UserService:
@@ -17,18 +19,21 @@ class UserService:
     def __init__(
         self,
         user_repo: IUserRepository,
-        ):
+        email_service: EmailService,
+    ):
         self.user_repo = user_repo
         self.ulid = ULID()
         self.crypto = Crypto()
+        self.email_service = email_service
 
     def create_user(
-            self, 
+            self,
+            # background_tasks: BackgroundTasks, 
             name: str, 
             email: str, 
             password: str,
             memo: str | None = None,
-            ):
+    ):
         _user = None
 
         try: 
@@ -42,7 +47,7 @@ class UserService:
         
         now = datetime.now()
         user: User = User(
-            id=self.ulid.generate(),
+            id=str(self.ulid.generate()),
             name=name,
             email=email,
             password=self.crypto.encrypt(password),
@@ -51,7 +56,12 @@ class UserService:
             updated_at=now,
         )
         self.user_repo.save(user)
-    
+        
+        # background_tasks.add_task(
+        #     self.email_service.send_email, user.email
+        # )
+        SendWelcomeEmailTask().run(user.email)
+        
         return user
     
 

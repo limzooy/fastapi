@@ -47,9 +47,9 @@ class UpdateNoteBody(BaseModel):
 @inject
 
 def create_note(
-    current_user: Annotated[CurrentUser, Depends(get_current)user],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
     body: CreateNoteBody,
-    note_service: NoteService = Depends(Provide)[Container.note_service]),
+    note_service: NoteService = Depends(Provide[Container.note_service]),
 ):
     note = note_service.create_note(
         user_id=current_user.id,
@@ -85,11 +85,11 @@ def get_notes(
         note_dict.update({"tags": [tag.name for tag in note.tags]})
         res_notes.append(note_dict)
         
-        return {
-            "total_count": total_count,
-            "page": page,
-            "notes": res_notes,
-        }
+    return {
+        "total_count": total_count,
+        "page": page,
+        "notes": res_notes,
+    }
 
 @router.get("/{id}", response_model=GetNotesResponse)
 @inject
@@ -125,7 +125,7 @@ def update_note(
     )
     
     response = asdict(note)
-    response.update({"tags": [tag.name for in note.tags]})
+    response.update({"tags": [tag.name for tag in note.tags]})
     
     return response
 

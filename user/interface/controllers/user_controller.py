@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import BackgroundTasks, APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr, Field
 from user.application.user_service import UserService
 from typing import Annotated
@@ -39,9 +39,11 @@ class GetUsersResponse(BaseModel):
 @inject
 def create_user(
     user:CreateUserBody,
+    background_tasks: BackgroundTasks,
     user_service: UserService = Depends(Provide[Container.user_service]),
-    ):
+):
     created_user = user_service.create_user(
+        background_tasks=background_tasks,
         name=user.name,
         email=user.email,
         password=user.password,

@@ -2,7 +2,7 @@
 # from note.domain.repository.note_repo import INoteRepository
 from fastapi import HTTPException
 from sqlalchemy.orm import joinedload
-from database import SessionaLocal
+from database import SessionLocal
 from note.domain.note import Note as NoteVO
 from note.domain.repository.note_repo import INoteRepository
 from note.infra.db_models.note import Note, Tag
@@ -63,7 +63,7 @@ class NoteRepository(INoteRepository):
                         )
                     )
         new_note = Note(
-            id=note.vo.id,
+            id=note_vo.id,
             user_id=user_id,
             title=note_vo.title,
             content=note_vo.content,
@@ -74,10 +74,10 @@ class NoteRepository(INoteRepository):
         )
         
         db.add(new_note)
-        db.commit
+        db.commit()
         # raise NotImplementedError
     
-    def update(self, user_id: str, note_vo: Note_VO) -> NoteVO:
+    def update(self, user_id: str, note_vo: NoteVO) -> NoteVO:
         with SessionLocal() as db:
             self.delete_tags(user_id, note_vo.id)
             
@@ -182,4 +182,4 @@ class NoteRepository(INoteRepository):
             return total_count, note_vos
         
         
-        raise NotImplementedError
+        # raise NotImplementedError
