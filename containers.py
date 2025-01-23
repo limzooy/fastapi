@@ -22,7 +22,7 @@ class Container(containers.DeclarativeContainer):
     user_service = providers.Factory(
         UserService,
         user_repo=user_repo,
-        email_service=email_service
+        email_service=email_service,
     )
     
     # user_service = providers.Factory(UserService, user_repo=user_repo)

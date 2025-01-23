@@ -1,17 +1,17 @@
-from ulid import ULID
 from datetime import datetime
 from user.domain.user import User
 from user.domain.repository.user_repo import IUserRepository
 from user.infra.repository.user_repo import UserRepository
-from fastapi import HTTPException, BackgroundTasks
-from utils.crypto import Crypto
+from fastapi import HTTPException, BackgroundTasks, status
+from ulid import ULID
+
 from typing import Annotated
 from fastapi import HTTPException, Depends
 from dependency_injector.wiring import inject, Provide
-from fastapi import status
 from common.auth import Role, create_access_token
 from user.application.email_service import EmailService
 from user.application.send_welcome_email_task import SendWelcomeEmailTask
+from utils.crypto import Crypto
 
 
 class UserService:
@@ -20,10 +20,13 @@ class UserService:
         self,
         user_repo: IUserRepository,
         email_service: EmailService,
+        ulid: ULID,
+        crypto: Crypto,
+        send_welcome_email_task: SendWelcomeEmailTask,
     ):
         self.user_repo = user_repo
-        self.ulid = ULID()
-        self.crypto = Crypto()
+        self.ulid = ulid
+        self.crypto = crypto
         self.email_service = email_service
 
     def create_user(
@@ -47,7 +50,7 @@ class UserService:
         
         now = datetime.now()
         user: User = User(
-            id=str(self.ulid.generate()),
+            id=self.ulid.generate(),
             name=name,
             email=email,
             password=self.crypto.encrypt(password),
@@ -71,9 +74,9 @@ class UserService:
         name: str | None = None,
         password: str | None = None,
     ):
-        # print(3)
+
         user = self.user_repo.find_by_id(user_id)
-        print(user)
+        # print(user)
         if name: 
             user.name = name
         if password:
@@ -83,6 +86,15 @@ class UserService:
         self.user_repo.update(user)
 
         return user
+    
+    def get_users(self, page: int, items_per_page: int) -> tuple[int, list[User]]:
+        users = self.user_repo.get_users(page, items_per_page)
+        
+        return users
+    
+    def delete_user(self, user_id: str):
+        self.user_repo.delete(user_id)
+    
     
     def login(self, email: str, password: str):
         user = self.user_repo.find_by_email(email)
@@ -96,12 +108,3 @@ class UserService:
         )
         
         return access_token
-    
-    def get_users(self, page: int, items_per_page: int) -> tuple[int, list[User]]:
-        users = self.user_repo.get_users(page, items_per_page)
-        
-        return users
-    
-    def delete_user(self, user_id: str):
-        self.user_repo.delete(user_id)
-    
