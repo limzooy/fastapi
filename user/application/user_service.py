@@ -28,10 +28,12 @@ class UserService:
         self.ulid = ulid
         self.crypto = crypto
         self.email_service = email_service
+        self.ulid = ulid
+        self.crypto = crypto
+        self.send_welcome_email_task = send_welcome_email_task
 
     def create_user(
             self,
-            # background_tasks: BackgroundTasks, 
             name: str, 
             email: str, 
             password: str,
@@ -60,10 +62,8 @@ class UserService:
         )
         self.user_repo.save(user)
         
-        # background_tasks.add_task(
-        #     self.email_service.send_email, user.email
-        # )
         SendWelcomeEmailTask().run(user.email)
+        self. send_welcome_email_task.delay(user.email)
         
         return user
     

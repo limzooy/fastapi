@@ -2,6 +2,10 @@ from dependency_injector import containers, providers
 from user.application.user_service import UserService
 from note.application.note_service import NoteService
 
+from ulid import ULID
+from utils.crypto import Crypto
+from user.application.send_welcome_email_task import SendWelcomeEmailTask
+
 from user.infra.repository.user_repo import UserRepository
 from note.infra.repository.note_repo import NoteRepository
 
@@ -19,10 +23,16 @@ class Container(containers.DeclarativeContainer):
     user_repo = providers.Factory(UserRepository)
     email_service = providers.Factory(EmailService)
     
+    ulid = providers.Factory(ULID)
+    crypto = providers.Factory(Crypto)
+    send_welcome_email_task = providers.Factory(SendWelcomeEmailTask)
     user_service = providers.Factory(
         UserService,
         user_repo=user_repo,
         email_service=email_service,
+        ulid=ulid,
+        crypto=crypto,
+        send_welcome_email_task=send_welcome_email_task,
     )
     
     # user_service = providers.Factory(UserService, user_repo=user_repo)
